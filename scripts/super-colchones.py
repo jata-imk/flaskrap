@@ -5,14 +5,18 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import create_app
+from app.main.services.product_service import ProductService
+from app.main.services.inventory_service import InventoryService
+from app.utils.string_formatter import clean_number
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import urlparse, parse_qs, urlencode
 
-import time
+# import time
+import uuid
 
 app = create_app()
 app.app_context().push()
@@ -25,8 +29,9 @@ class SuperColchonesWebScrapper:
         options = None
         
         if (debug is False):
+            print('Running in headless mode...\n\n')
             options = Options()
-            options.headless = True
+            options.add_argument("--headless=new")
             options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
         driver = webdriver.Chrome(options)
@@ -70,12 +75,15 @@ class SuperColchonesWebScrapper:
         return filterSection
     
     def selectResultsContainer(self):
-        mainContent = self.selectMainContent()
+        try:
+            mainContent = self.selectMainContent()
 
-        resultsContainer = mainContent.find_element(by=By.CSS_SELECTOR, value='* > .columns > .column.main')
-        resultsContainer = resultsContainer.find_element(by=By.CSS_SELECTOR, value='* > .search.results > .products.wrapper')
+            resultsContainer = mainContent.find_element(by=By.CSS_SELECTOR, value='* > .columns > .column.main')
+            resultsContainer = resultsContainer.find_element(by=By.CSS_SELECTOR, value='* > .search.results > .products.wrapper')
 
-        return resultsContainer
+            return resultsContainer
+        except NoSuchElementException:
+            return None
         
 filters = {
     'cat' : {
@@ -84,7 +92,7 @@ filters = {
     },
     'manufacturer' : {
         'title': 'Marca',
-        'value': ''
+        'value': [5448] # Spring air
     },
     'tipo' : {
         'title': 'Tipo',
@@ -92,7 +100,7 @@ filters = {
     },
     'size' : {
         'title': 'Tamaño',
-        'value': 'Matrimonial'
+        'value': 'Individual'
     },
     'confort' : {
         'title': 'Nivel de Confort',
@@ -111,7 +119,7 @@ superColchonesWeb = SuperColchonesWebScrapper()
 search_box = superColchonesWeb.selectSearchBox()
 search_box.click()
 
-search_box.send_keys('Colchon')
+search_box.send_keys('Colchon Spring Hair')
 search_box.submit()
 
 # 2. Cargar la lista de coincidencias y aplicar los filtros pero no haciendo
@@ -126,8 +134,12 @@ filterOptions = filterOptionsContainer.find_elements(by=By.CSS_SELECTOR, value='
 # el primero es el titulo y el segundo el contenido
 
 filterParameters = {
-    'q' : ['Colchon']
+    'q' : ['Colchon Spring Hair']
 }
+
+# brandsLists se ocupa para guardar un arreglo de objetos que contienen el nombre de la marca y su ID
+# esto sera util mas adelante cuando vayamos a guardar los productos
+brandsList = []
 
 for filterOption in filterOptions:
     title = filterOption.find_element(by=By.CSS_SELECTOR, value='* > .filter-options-title')
@@ -155,31 +167,80 @@ for filterOption in filterOptions:
         # Obtiene el valor correspondiente del diccionario filters usando la llave obtenida
         filterValue = filters.get(itemAnchorHrefParamsKey)
 
+        if title.text.strip() == 'Marca':
+            if (len(filters['manufacturer']['value']) == 0 or int(itemAnchorHrefParamsValue) in filters['manufacturer']['value']):
+                brandsList.append({'name': itemAnchorText, 'id': itemAnchorHrefParamsValue})
+
         if (filterValue['value'] != '' and filterValue['value'] == itemAnchorText):
             filterParameters[itemAnchorHrefParamsKey] = [itemAnchorHrefParamsValue]
             
 urlcatalogSearchResults = superColchonesWeb.urlBase + superColchonesWeb.endpointCatalogSearchResults
 urlcatalogSearchResults = urlcatalogSearchResults + "?" + urlencode(filterParameters, doseq=True)
 
-superColchonesWeb.driver.get(urlcatalogSearchResults)
+scraped_products = [];
+for brand in brandsList:
+    filterParameters['manufacturer'] = [brand['id']]
+    urlcatalogSearchResults = superColchonesWeb.urlBase + superColchonesWeb.endpointCatalogSearchResults
+    urlcatalogSearchResults = urlcatalogSearchResults + "?" + urlencode(filterParameters, doseq=True)
 
-# 3. Iterar los resultados filtrados y obtener los precios Desde de todos los colchones
-#    ademas de también guardar su modelo y su marca
-#    igualmente se selecciona un modelo en particular y se visita su pagina y se guardan todos sus precios
-resultsContainer = superColchonesWeb.selectResultsContainer()
-productsList = resultsContainer.find_elements(by=By.CSS_SELECTOR, value='* > ol.product-items > li.product-item')
+    superColchonesWeb.driver.get(urlcatalogSearchResults)
 
-for productItem in productsList:
-    productItemInfo = productItem.find_element(by=By.CSS_SELECTOR, value='* > .product-item-info')
-    productAnchor = productItemInfo.find_element(by=By.CSS_SELECTOR, value='* > a')
-    productAnchorHref = productAnchor.get_attribute('href')
+    # 3. Iterar los resultados filtrados y obtener los precios Desde de todos los colchones
+    #    ademas de también guardar su modelo y su marca
+    #    igualmente se selecciona un modelo en particular y se visita su pagina y se guardan todos sus precios
+    resultsContainer = superColchonesWeb.selectResultsContainer()
 
-    productItemName = productItemInfo.find_element(by=By.CSS_SELECTOR, value='.product-item-name > a')
-    productItemPrice = productItemInfo.find_element(by=By.CSS_SELECTOR, value='.price-final_price > span.normal-price .price')
+    if resultsContainer is None:
+        continue
 
-    print(f"Nombre del producto: {productItemName.text},\nPrecio: {productItemPrice.text}\n\n")
+    productsList = resultsContainer.find_elements(by=By.CSS_SELECTOR, value='* > ol.product-items > li.product-item')
+
+    for productItem in productsList:
+        productItemInfo = productItem.find_element(by=By.CSS_SELECTOR, value='* > .product-item-info')
+        productAnchor = productItemInfo.find_element(by=By.CSS_SELECTOR, value='* > a')
+        productAnchorHref = productAnchor.get_attribute('href')
+
+        productItemName = productItemInfo.find_element(by=By.CSS_SELECTOR, value='.product-item-name > a')
+
+        productItemPrice = None
+        try:
+            productItemPrice = productItemInfo.find_element(by=By.CSS_SELECTOR, value='.price-final_price > span.normal-price .price')
+        except NoSuchElementException:
+            print("No se encontró el elemento span.normal-price, tratando de buscar span.special-price")
+            productItemPrice = productItemInfo.find_element(by=By.CSS_SELECTOR, value='.price-final_price > span.special-price .price')
+        
+        if productItemPrice is None:
+            print("No se encontró el elemento span.normal-price ni span.special-price, no se agregara el historico del producto, continuando con el siguiente.")
+            continue
+
+        productItemFormToCart = productItemInfo.find_element(by=By.CSS_SELECTOR, value='* > .product-item-details .product-item-actions > .actions-primary > form')
+        productItemSku = productItemFormToCart.get_attribute('data-product-sku')
+
+        objectProduct = {
+            'name': productItemName.text,
+            'categories': ['Muebles', 'Recámaras', 'Camas y bases'],
+            'brand': brand['name'],
+            'vendor': 'Super Colchones',
+            'price':  clean_number(productItemPrice.text),
+            'sku': 'alz-' + str(uuid.uuid4()),
+            'vendor_sku': productItemSku
+        }
+        scraped_products.append(objectProduct)
+
+    for product_data in scraped_products:
+        # Suponiendo que ProductService.get_or_create_product maneja la lógica de productos
+        product = ProductService.get_or_create_product(product_data)
+        product_inventory  = ProductService.get_or_create_product_inventory(product_data)
+        
+        # Registrar transacción de entrada de inventario
+        InventoryService.log_io_transaction(
+            inventory_id=product_inventory.id,
+            io_type='PRICE_UPDATE',
+            quantity=0,  # Ejemplo: 1 unidad
+            price=product_data['price'],
+        )
 
 # wait on this screen, not close the browser
-time.sleep(500)
+# time.sleep(500)
 
-# driver.quit() # close the browser
+superColchonesWeb.driver.quit() # close the browser

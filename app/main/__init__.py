@@ -2,4 +2,4 @@ from flask import Blueprint
 
 main = Blueprint('main', __name__)
 
-from app.main import routes, controllers, models
+from app.main import routes, controllers, models, repositories
