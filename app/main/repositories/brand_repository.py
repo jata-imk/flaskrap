@@ -1,5 +1,5 @@
 from app import db
-from app.main.models import Brand
+from app.main.models.Brand import Brand
 
 class BrandRepository:
     @staticmethod

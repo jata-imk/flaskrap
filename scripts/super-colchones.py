@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app import create_app
 from app.main.services.product_service import ProductService
 from app.main.services.inventory_service import InventoryService
+from app.utils.string_formatter import clean_number
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,7 +15,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import urlparse, parse_qs, urlencode
 
-import time
+# import time
+import uuid
 
 app = create_app()
 app.app_context().push()
@@ -27,8 +29,9 @@ class SuperColchonesWebScrapper:
         options = None
         
         if (debug is False):
+            print('Running in headless mode...\n\n')
             options = Options()
-            options.headless = True
+            options.add_argument("--headless=new")
             options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
         driver = webdriver.Chrome(options)
@@ -215,30 +218,29 @@ for brand in brandsList:
 
         objectProduct = {
             'name': productItemName.text,
-            'category': ['Muebles', 'Recámaras', 'Camas y bases'],
+            'categories': ['Muebles', 'Recámaras', 'Camas y bases'],
             'brand': brand['name'],
             'vendor': 'Super Colchones',
-            'price':  productItemPrice.text,
+            'price':  clean_number(productItemPrice.text),
+            'sku': 'alz-' + str(uuid.uuid4()),
             'vendor_sku': productItemSku
         }
         scraped_products.append(objectProduct)
 
-        print(f"Objeto del producto: {objectProduct}\n\n")
-
     for product_data in scraped_products:
         # Suponiendo que ProductService.get_or_create_product maneja la lógica de productos
         product = ProductService.get_or_create_product(product_data)
+        product_inventory  = ProductService.get_or_create_product_inventory(product_data)
         
         # Registrar transacción de entrada de inventario
         InventoryService.log_io_transaction(
-            inventory_id=product.inventory_id,
-            io_type='IN',
-            quantity=1,  # Ejemplo: 1 unidad
-            price=product.price
+            inventory_id=product_inventory.id,
+            io_type='PRICE_UPDATE',
+            quantity=0,  # Ejemplo: 1 unidad
+            price=product_data['price'],
         )
 
-    
 # wait on this screen, not close the browser
-time.sleep(500)
+# time.sleep(500)
 
-# driver.quit() # close the browser
+superColchonesWeb.driver.quit() # close the browser

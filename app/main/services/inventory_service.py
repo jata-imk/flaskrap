@@ -1,5 +1,5 @@
 from app.main.repositories.product_io_history_repository import ProductIOHistoryRepository
-from app.main.models import ProductIOHistory
+from app.main.models.ProductIOHistory import ProductIOHistory
 
 class InventoryService:
     @staticmethod

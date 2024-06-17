@@ -1,5 +1,5 @@
 from app import db
-from app.main.models import Category
+from app.main.models.Category import Category
 
 class CategoryRepository:
     @staticmethod

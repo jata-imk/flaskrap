@@ -15,7 +15,7 @@ class Product(db.Model):
         db.String(127), nullable=False, default="", server_default=""
     )
     out_of_stock = db.Column(
-        db.Boolean, nullable=False, default=False, server_default="1"
+        db.Boolean, nullable=False, default=True, server_default="1"
     )  # Por defecto es como si estuviera fuera de stock
     categories_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=False)
     brand_id = db.Column(db.Integer, db.ForeignKey("brand.id"), nullable=False)

@@ -1,5 +1,5 @@
 from app import db
-from app.main.models import Product
+from app.main.models.Product import Product
 
 class ProductRepository:
     @staticmethod

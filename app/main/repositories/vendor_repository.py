@@ -1,5 +1,5 @@
 from app import db
-from app.main.models import Vendor
+from app.main.models.Vendor import Vendor
 
 class VendorRepository:
     @staticmethod

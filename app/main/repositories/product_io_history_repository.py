@@ -1,5 +1,5 @@
-from app.main.models import ProductIOHistory
 from app import db
+from app.main.models.ProductIOHistory import ProductIOHistory
 
 class ProductIOHistoryRepository:
     @staticmethod
