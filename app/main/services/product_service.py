@@ -39,16 +39,6 @@ class ProductService:
         ProductRepository.create(product)
 
     @staticmethod
-    def create_or_update_product(product_data):
-        product = ProductRepository.get_by_name(product_data['name'])
-        if not product:
-            ProductService.create_product(product_data)
-        else:
-            # Actualiza el producto existente si es necesario
-            product.price = product_data['price']
-            ProductRepository.update(product)
-
-    @staticmethod
     def get_or_create_product(product_data):
         product = ProductRepository.get_by_name(product_data['name'])
         if not product:
@@ -76,3 +66,7 @@ class ProductService:
             ProductInventoryRepository.create(product_inventory)
 
         return product_inventory
+    
+    @staticmethod
+    def get_all_products():
+        return ProductRepository.get_all()
