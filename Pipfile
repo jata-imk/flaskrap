@@ -9,6 +9,7 @@ flask-migrate = "*"
 flask-sqlalchemy = "*"
 pymysql = "*"
 python-dotenv = "*"
+flask-inertia = "*"
 
 [dev-packages]
 
