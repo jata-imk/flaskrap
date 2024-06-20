@@ -3,16 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mis Productos{% endblock %}</title>
+    <title>{% block title %}Flask - Aleliz{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <script lang="javascript">
+        {{ inertia.include_router() }}
+    </script>  
 </head>
 <body>
-    <nav>
-        <!-- Navigation menu -->
-    </nav>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <div id="app" data-page='{{ page | tojson }}'></div>
+    
+    {% if config['ENV'] == 'development' %}
+    <script type="module">
+        import RefreshRuntime from 'http://localhost:5173/@react-refresh'
+        RefreshRuntime.injectIntoGlobalHook(window)
+        window.$RefreshReg$ = () => {}
+        window.$RefreshSig$ = () => (type) => type
+        window.__vite_plugin_react_preamble_installed__ = true
+    </script>
+
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module" src="http://localhost:5173/src/main.jsx"></script>
+    {% else %}
+    <!-- TODO: Aun no esta optimizado para ambiente de producción, por ahora solo funciona en desarrollo -->
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    {% endif %}
 </body>
 </html>
