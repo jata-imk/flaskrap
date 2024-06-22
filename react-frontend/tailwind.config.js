@@ -1,12 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    './node_modules/preline/preline.js',
   ],
+  // enable dark mode via class strategy
+  darkMode: 'class',
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('preline/plugin')
+  ],
 }
 
