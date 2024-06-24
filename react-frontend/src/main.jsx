@@ -3,8 +3,24 @@ import 'vite/modulepreload-polyfill'
 
 import { createInertiaApp } from '@inertiajs/react'
 import { createRoot } from 'react-dom/client'
+import { HSStaticMethods } from "preline"
 
 import './index.css'
+
+HSStaticMethods.autoInit();
+
+const observer = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+        HSStaticMethods.autoInit();
+    }
+});
+
+observer.observe(document.body, {
+    attributes: true,
+    subtree: true,
+    childList: true,
+    characterData: true,
+});
 
 createInertiaApp({
   resolve: name => {

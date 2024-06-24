@@ -31,10 +31,16 @@ class SuperColchonesWebScrapper:
         if (debug is False):
             print('Running in headless mode...\n\n')
             options = Options()
+
+            print(f"Enviroment: {os.getenv('APP_ENV')}")
+            if (os.getenv("APP_ENV") == 'production'):
+                options.binary_location = "/usr/bin/chromium" # Ruta al ejecutable de Chromium en el servidor de producción)
+
             options.add_argument("--headless=new")
             options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
         driver = webdriver.Chrome(options)
+        
         driver.get(self.urlBase)
         driver.implicitly_wait(5)
 
