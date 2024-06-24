@@ -1,8 +1,4 @@
-import "preline"
-import themeSwitch from "preline/dist/theme-switch";
-
-function ThemeModeSwitcher() {
-
+export default function ThemeModeSwitcher() {
     return (
         <>
             <input data-hs-theme-switch="" className="relative w-[3.25rem] h-7 bg-gray-100 checked:bg-none checked:bg-blue-600 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ring-1 ring-transparent focus:border-gray-700 focus:ring-gray-700 focus:outline-none appearance-none
@@ -13,5 +9,3 @@ function ThemeModeSwitcher() {
         </>
     )
 }
-
-export default ThemeModeSwitcher;
