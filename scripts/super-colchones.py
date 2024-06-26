@@ -10,8 +10,13 @@ from app.main.services.inventory_service import InventoryService
 from app.utils.string_formatter import clean_number
 
 from selenium import webdriver
+
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -30,19 +35,26 @@ class SuperColchonesWebScrapper:
         
         if (debug is False):
             print('Running in headless mode...\n\n')
-            options = Options()
-
             print(f"Enviroment: {os.getenv('APP_ENV')}")
+
             if (os.getenv("APP_ENV") == 'production'):
-                options.binary_location = "/usr/bin/chromium" # Ruta al ejecutable de Chromium en el servidor de producción)
+                options = webdriver.FirefoxOptions()
 
-            options.add_argument("--headless=new")
-            options.add_experimental_option("excludeSwitches", ["enable-logging"])
+                options.add_argument('--headless')
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
 
-        driver = webdriver.Chrome(options)
+                driver = webdriver.Firefox(options=options)
+            else:
+                options = Options()
+
+                options.add_argument("--headless")
+                options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
+                driver = webdriver.Chrome(options=options)
         
         driver.get(self.urlBase)
-        driver.implicitly_wait(5)
+        driver.implicitly_wait(10)
 
         self.driver = driver
 
@@ -76,7 +88,14 @@ class SuperColchonesWebScrapper:
     def selectFilterSection(self):
         mainContent = self.selectMainContent()
         
-        filterSection = mainContent.find_element(by=By.CSS_SELECTOR, value='* > .columns > .sidebar.sidebar-main')
+        filterSection = None
+
+        try:
+            filterSection = mainContent.find_element(by=By.CSS_SELECTOR, value='* > .columns > .sidebar.sidebar-main')
+        except StaleElementReferenceException:
+            filterSection = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '* > .columns > .sidebar.sidebar-main'))
+            )
 
         return filterSection
     
