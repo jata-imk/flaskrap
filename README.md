@@ -32,7 +32,7 @@ Ahora en otra terminal iniciamos el servidor de VITE
     cd ./react-frontend/
     npm run dev
 
-Si todo salió bien ahora deberíamos tener dos servidores, uno en el puerto 5000 (Flask) y el otro en el puerto 5147 (Vite), entramos desde nuestro navegador a la dirección [http://localhost:5173](http://localhost:5000) y listo.
+Si todo salió bien ahora deberíamos tener dos servidores, uno en el puerto 5000 (Flask) y el otro en el puerto 5147 (Vite), entramos desde nuestro navegador a la dirección [http://localhost:5000](http://localhost:5000) y listo.
 
 ## Variables de entorno
 
