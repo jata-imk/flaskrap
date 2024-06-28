@@ -1,0 +1,10 @@
+{% extends "base_jinja.html" %}
+
+{% block content %}
+    <h1>Productos</h1>
+    <ul class="ul-products">
+        {% for product in products %}
+            <li>{{ product.name }} <span>{{ product.sku }}</small></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,6 +1,13 @@
 .env
 
+# frontend project
+react-frontend/dist
+react-frontend/node_modules
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# misc
+.DS_STORE
