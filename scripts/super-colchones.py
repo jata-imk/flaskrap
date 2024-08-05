@@ -121,7 +121,7 @@ filters = {
     },
     'tipo' : {
         'title': 'Tipo',
-        'value': 'Resorte'
+        'value': ''
     },
     'size' : {
         'title': 'Tamaño',
