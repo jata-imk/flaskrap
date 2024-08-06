@@ -6,7 +6,7 @@ export default function Layout({ children }) {
         <>
             <Navbar />
 
-            <main>
+            <main className="container mx-auto">
                 {children}
             </main>
             
