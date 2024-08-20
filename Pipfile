@@ -5,11 +5,13 @@ name = "pypi"
 
 [packages]
 selenium = "*"
+flask = "*"
 flask-migrate = "*"
 flask-sqlalchemy = "*"
 pymysql = "*"
 python-dotenv = "*"
 flask-inertia = "*"
+python-dateutil = "*"
 
 [dev-packages]
 

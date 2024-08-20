@@ -45,8 +45,18 @@ class ProductIOHistory(db.Model):
     )
 
     inventory = db.relationship(
-        "ProductInventory", backref=db.backref("io_history", lazy=True)
+        "ProductInventory", back_populates="io_history", lazy=True
     )
 
     def __repr__(self):
         return f"<IO History for product {self.inventory.linked_product_id} with vendor {self.inventory.linked_vendor_id}>"
+
+    def as_dict(self):
+        product_io_history_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+        if "inventories" in self.__dict__:
+            product_io_history_dict["inventories"] = [
+                inventory.as_dict() for inventory in self.inventories
+            ]
+
+        return product_io_history_dict

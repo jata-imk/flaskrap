@@ -1,6 +1,4 @@
-import React from "react";
-
-const columns = [
+export const columns = [
     {
         name: 'ID',
         uid: 'id',
@@ -22,8 +20,3 @@ const columns = [
         uid: 'last_21d',
     },
 ];
-
-
-export {
-    columns
-}

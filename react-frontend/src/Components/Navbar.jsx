@@ -1,6 +1,9 @@
 import ThemeModeSwitcher from "./ThemeModeSwitcher"
 
-export default function Navbar() {
+export default function Navbar({currentPage}) {
+    const activePageClassnames = "relative inline-block text-black before:absolute before:bottom-0.5 before:start-0 before:-z-[1] before:w-full before:h-1 before:bg-lime-400 dark:text-white";
+    const inactivePageClassnames = "inline-block text-black hover:text-gray-600 dark:text-white dark:hover:text-neutral-300";
+    
     return (
         <header className="flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full py-7">
             <nav className="relative max-w-7xl w-full flex flex-wrap md:grid md:grid-cols-12 basis-full items-center px-4 md:px-6 md:px-8 mx-auto" aria-label="Global">
@@ -15,7 +18,7 @@ export default function Navbar() {
                     </a>
                 </div>
 
-                <div className="flex items-center gap-x-2 ms-auto py-1 md:ps-6 md:order-3 md:col-span-3">
+                <div className="flex items-center gap-x-4 ms-auto py-1 md:ps-6 md:order-3 md:col-span-3">
                     <ThemeModeSwitcher/>
 
                     <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-lime-400 text-black hover:bg-lime-500 transition disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-lime-500">
@@ -33,16 +36,10 @@ export default function Navbar() {
                 <div id="navbar-collapse-with-animation" className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block md:w-auto md:basis-auto md:order-2 md:col-span-6">
                     <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:justify-center md:items-center md:gap-y-0 md:gap-x-7 md:mt-0">
                         <div>
-                            <a className="relative inline-block text-black before:absolute before:bottom-0.5 before:start-0 before:-z-[1] before:w-full before:h-1 before:bg-lime-400 dark:text-white" href="./" aria-current="page">Inicio</a>
+                            <a className={currentPage === "home" ? activePageClassnames : inactivePageClassnames} href="./">Inicio</a>
                         </div>
                         <div>
-                            <a className="inline-block text-black hover:text-gray-600 dark:text-white dark:hover:text-neutral-300" href="#">Servicios</a>
-                        </div>
-                        <div>
-                            <a className="inline-block text-black hover:text-gray-600 dark:text-white dark:hover:text-neutral-300" href="#">Sobre nosotros</a>
-                        </div>
-                        <div>
-                            <a className="inline-block text-black hover:text-gray-600 dark:text-white dark:hover:text-neutral-300" href="./products">Productos</a>
+                            <a className={currentPage === "products" ? activePageClassnames : inactivePageClassnames} href="./products">Productos</a>
                         </div>
                     </div>
                 </div>

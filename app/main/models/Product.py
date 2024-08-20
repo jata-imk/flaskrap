@@ -31,9 +31,19 @@ class Product(db.Model):
 
     category = db.relationship("Category", backref=db.backref("products", lazy=True))
     brand = db.relationship("Brand", backref=db.backref("products", lazy=True))
+    inventories = db.relationship(
+        "ProductInventory", back_populates="product", lazy=True
+    )
 
     def __repr__(self):
         return f"<Product {self.name}>"
-    
+
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        product_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+        if "inventories" in self.__dict__:
+            product_dict["inventories"] = [
+                inventory.as_dict() for inventory in self.inventories
+            ]
+
+        return product_dict

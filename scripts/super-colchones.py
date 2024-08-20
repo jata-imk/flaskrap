@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import create_app
 from app.main.services.product_service import ProductService
-from app.main.services.inventory_service import InventoryService
+from app.main.services.product_inventory_service import ProductInventoryService
 from app.utils.string_formatter import clean_number
 
 from selenium import webdriver
@@ -258,7 +258,7 @@ for brand in brandsList:
         product_inventory  = ProductService.get_or_create_product_inventory(product_data)
         
         # Registrar transacción de entrada de inventario
-        InventoryService.log_io_transaction(
+        ProductInventoryService.log_io_transaction(
             inventory_id=product_inventory.id,
             io_type='PRICE_UPDATE',
             quantity=0,  # Ejemplo: 1 unidad
