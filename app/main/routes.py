@@ -20,12 +20,4 @@ def index():
 
 @main.route("/products", methods=["GET"])
 def products():
-    products = product_controller.get_products()    
-    json_products = [product.as_dict() for product in products]
-
-    return render_inertia(
-        component_name="ProductsList",
-        props={
-            "products": json_products
-        }
-    )
+    return product_controller.get_products()

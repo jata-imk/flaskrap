@@ -5,7 +5,7 @@ export default {
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
     "./node_modules/preline/preline.js",
-    "./node_modules/@nextui-org/theme/dist/components/(date-picker|input|pagination|table|button|ripple|spinner|calendar|date-input|popover|checkbox|spacer).js"
+    "./node_modules/@nextui-org/theme/dist/components/(button|date-picker|input|pagination|table|popover|ripple|spinner|calendar|date-input|checkbox|spacer).js"
   ],
   // enable dark mode via class strategy
   darkMode: 'class',

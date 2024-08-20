@@ -9,6 +9,10 @@ import {
     Table, TableHeader, TableColumn, TableBody, TableRow, TableCell
 } from "@nextui-org/table";
 
+import { MdInfoOutline } from "react-icons/md";
+import { Tooltip as TooltipNext } from "@nextui-org/tooltip";
+import { Button } from "@nextui-org/button";
+
 import { now, getLocalTimeZone } from "@internationalized/date";
 
 import { columns } from "../Config/productsListConfig";
@@ -41,10 +45,10 @@ export default function ProductsList({ products }) {
     const [filterValue, setFilterValue] = useState("");
     const [dateFilter, setDateFilter] = useState(null);
     const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(0);
     const rowsPerPage = 5;
 
     const hasSearchFilter = Boolean(filterValue);
-    const pages = Math.ceil(products.length / rowsPerPage);
 
     const filteredProducts = useMemo(() => {
         let filteredProducts = [...products];
@@ -60,6 +64,8 @@ export default function ProductsList({ products }) {
         //         user.created_at.toISOString().split("T")[0] === dateFilter.toISOString().split("T")[0]
         //     );
         // }
+
+        setPages(Math.ceil(filteredProducts.length / rowsPerPage));
 
         return filteredProducts;
     }, [products, filterValue]);
@@ -79,7 +85,7 @@ export default function ProductsList({ products }) {
                 return (
                     <button type="button" className="flex items-center gap-x-2">
                         <svg className="flex-shrink-0 size-4 text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                        <span className="text-sm text-gray-800 dark:text-neutral-200">{cellValue + 1}</span>
+                        <span className="text-sm text-gray-800 dark:text-neutral-200">{cellValue}</span>
                     </button>
                 );
             case "name":
@@ -88,19 +94,60 @@ export default function ProductsList({ products }) {
                         <div className="w-15">
                             <img src={`https://picsum.photos/id/${product.id * 4}/40`} alt="Lorem ipsum img" />
                         </div>
-                        <span className="font-semibold text-sm text-gray-800 dark:text-white">{product.name}</span>
-                        <span className="text-xs text-gray-500 dark:text-neutral-500">BTC</span>
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-sm text-gray-800 dark:text-white">{product.name}</span>
+                            <span className="text-xs text-gray-500 dark:text-neutral-500">{product.sku}</span>
+                        </div>
                     </div>
                 );
             case "price":
+                const priceFormatted = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(product.inventories[0].price);
                 return (
-                    <span className="text-sm text-gray-800 dark:text-white">$26,869.14</span>
+                    <span className="text-sm text-gray-800 dark:text-white">{priceFormatted}</span>
                 );
             case "last_7d":
+                let product_inventories_io_history = [...product?.inventories[0]?.io_history];
+
+                if (product_inventories_io_history.length == 0 || product_inventories_io_history.length < 21) {
+                    return (
+                        <TooltipNext content="No hay suficientes datos para mostrar este indicador">
+                            <Button className="bg-transparent">
+                                <MdInfoOutline />
+                            </Button>
+                        </TooltipNext>
+                    )
+                }
+
+                const firstSevenIOHistoryItems = product_inventories_io_history.slice(0, 7);
+                let averageFirstSevenIOHistoryItems = firstSevenIOHistoryItems.reduce((a, b) => Number(a) + Number(b.price), 0) / firstSevenIOHistoryItems.length;
+
+                const nextFourteenIOHistoryItems = product_inventories_io_history.slice(7, 14);
+                let averageNextFourteenIOHistoryItems = nextFourteenIOHistoryItems.reduce((a, b) => Number(a) + Number(b.price), 0) / firstSevenIOHistoryItems.length;
+
+                const percentageChange = (averageNextFourteenIOHistoryItems / averageFirstSevenIOHistoryItems) - 1;
+                const percentageChangeFormatted = Number(percentageChange).toLocaleString("es-MX", { style: "percent", minimumFractionDigits: 2 });
+                console.log(averageFirstSevenIOHistoryItems, averageNextFourteenIOHistoryItems, percentageChange);
+                let fontColor = percentageChange == 0 ? "text-gray-500" : (percentageChange > 0 ? "text-red-500" : "text-green-500");
+
                 return (
-                    <span className="text-sm text-red-500">-3.8%</span>
-                );
+                    <span className={"text-sm ".concat(fontColor)}>{percentageChangeFormatted}</span>
+                )
             case "last_21d":
+                let io_history = [...product?.inventories[0]?.io_history];
+
+                if (io_history.length < 21) {
+                    io_history = [
+                        ...Array(21 - io_history.length).fill({
+                            price: null,
+                            transaction_date: null
+                        }), ...io_history
+                    ];
+                }
+
+                if (io_history.length == 0) {
+                    return <div className="text-gray-400 dark:text-white italic" style={{ height: '75px', lineHeight: '75px' }}>Sin información reciente</div>;
+                }
+
                 const chart = {
                     options: {
                         plugins: {
@@ -117,33 +164,21 @@ export default function ProductsList({ products }) {
                         maintainAspectRatio: false
                     },
                     data: {
-                        labels: [
-                            '25 January 2023',
-                            '26 January 2023',
-                            '27 January 2023',
-                            '28 January 2023',
-                            '29 January 2023',
-                            '30 January 2023',
-                            '31 January 2023',
-                            '1 February 2023',
-                            '2 February 2023',
-                            '3 February 2023',
-                            '4 February 2023',
-                            '5 February 2023',
-                            '6 February 2023',
-                            '7 February 2023',
-                            '8 February 2023',
-                            '9 February 2023',
-                            '10 February 2023',
-                            '11 February 2023',
-                            '12 February 2023',
-                            '13 February 2023',
-                            '14 February 2023'
-                        ],
+                        labels: io_history.map((price_history_item) => {
+                            const fechaObj = new Date(price_history_item.transaction_date);
+                            const opciones = {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            };
+
+                            return fechaObj.toLocaleDateString('es-MX', opciones);
+                        }),
                         datasets: [
                             {
                                 label: 'Precio',
-                                data: Array.from({ length: 21 }, () => Math.floor(Math.random() * 100)),
+                                data: io_history.map((io_history_item) => io_history_item.price),
                                 borderColor: '#3b82f6',
                                 borderWidth: 2,
                                 tension: 0.1,
@@ -188,12 +223,13 @@ export default function ProductsList({ products }) {
     }, [])
 
     return (
-        <Layout>
+        <Layout currentPage={'products'}>
             <div className="flex flex-col items-end	w-full flex-wrap md:flex-nowrap gap-4  my-4">
                 <DatePicker
                     value={dateFilter}
                     granularity="day"
                     onChange={setDateFilter}
+                    maxValue={now(getLocalTimeZone())}
                     label="Fecha de corte para los precios"
                     className="max-w-[284px]"
                     description={"Es la fecha a partir de la cual se leeran los precios de la base de datos hasta 21 dias antes"}
