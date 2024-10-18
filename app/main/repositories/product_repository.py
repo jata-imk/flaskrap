@@ -3,7 +3,7 @@ from app.main.models.Product import Product
 from app.main.models.ProductInventory import ProductInventory
 from app.main.models.ProductIOHistory import ProductIOHistory
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func
 from sqlalchemy.orm import aliased, contains_eager
 
 
@@ -22,33 +22,25 @@ class ProductRepository:
             stmt = stmt.limit(filter.limit)
 
         if filter.include:
-            filter.include = filter.include.split(",")
-
             if "inventories" in filter.include:
                 stmt = stmt.join(Product.inventories).options(
                     contains_eager(Product.inventories)
                 )
 
-                if "io_history" in filter.include:
-                    # Subquery para obtener los últimos 7 registros
+                if filter.include['inventories'].include and "io_history" in filter.include['inventories'].include:
+                    # Subquery para obtener los últimos X registros
                     subquery = select(
-                        ProductIOHistory,
-                        func.row_number()
-                        .over(
-                            partition_by=ProductIOHistory.inventory_id,
-                            order_by=ProductIOHistory.transaction_date.desc(),
-                        )
-                        .label("row_num"),
+                        ProductIOHistory
+                    ).where(
+                        func.date(ProductIOHistory.transaction_date)>=filter.include['inventories'].include['io_history'].start_date,
+                        func.date(ProductIOHistory.transaction_date)<=filter.include['inventories'].include['io_history'].end_date,
                     ).subquery()
 
                     filtered_io_history = aliased(ProductIOHistory, subquery)
 
                     stmt = stmt.join(
                         filtered_io_history,
-                        onclause=and_(
-                            ProductInventory.id == filtered_io_history.inventory_id,
-                            subquery.c.row_num <= 21,
-                        ),
+                        onclause=ProductInventory.id == filtered_io_history.inventory_id,
                         isouter=True,
                     ).options(
                         contains_eager(Product.inventories).contains_eager(

@@ -29,6 +29,7 @@ import {
 } from 'chart.js';
 
 import { Line } from 'react-chartjs-2';
+import { fillMissingDates } from "./../Utils/dateUtils";
 
 ChartJS.register(
     CategoryScale,
@@ -46,6 +47,7 @@ export default function ProductsList({ products }) {
     const [dateFilter, setDateFilter] = useState(null);
     const [page, setPage] = useState(1);
     const [pages, setPages] = useState(0);
+    // const [products, setProducts] = useState(products);
     const rowsPerPage = 5;
 
     const hasSearchFilter = Boolean(filterValue);
@@ -108,6 +110,12 @@ export default function ProductsList({ products }) {
             case "last_7d":
                 let product_inventories_io_history = [...product?.inventories[0]?.io_history];
 
+                product_inventories_io_history = fillMissingDates(
+                    product_inventories_io_history,
+                    new Date((new Date()).getTime() - (86400 * 20 * 1000)).getTime(),
+                    new Date().getTime()
+                )
+
                 if (product_inventories_io_history.length == 0 || product_inventories_io_history.length < 21) {
                     return (
                         <TooltipNext content="No hay suficientes datos para mostrar este indicador">
@@ -126,7 +134,6 @@ export default function ProductsList({ products }) {
 
                 const percentageChange = (averageNextFourteenIOHistoryItems / averageFirstSevenIOHistoryItems) - 1;
                 const percentageChangeFormatted = Number(percentageChange).toLocaleString("es-MX", { style: "percent", minimumFractionDigits: 2 });
-                console.log(averageFirstSevenIOHistoryItems, averageNextFourteenIOHistoryItems, percentageChange);
                 let fontColor = percentageChange == 0 ? "text-gray-500" : (percentageChange > 0 ? "text-red-500" : "text-green-500");
 
                 return (
@@ -135,18 +142,15 @@ export default function ProductsList({ products }) {
             case "last_21d":
                 let io_history = [...product?.inventories[0]?.io_history];
 
-                if (io_history.length < 21) {
-                    io_history = [
-                        ...Array(21 - io_history.length).fill({
-                            price: null,
-                            transaction_date: null
-                        }), ...io_history
-                    ];
-                }
-
                 if (io_history.length == 0) {
                     return <div className="text-gray-400 dark:text-white italic" style={{ height: '75px', lineHeight: '75px' }}>Sin información reciente</div>;
                 }
+
+                io_history = fillMissingDates(
+                    io_history,
+                    new Date((new Date()).getTime() - (86400 * 20 * 1000)).getTime(),
+                    new Date().getTime()
+                )
 
                 const chart = {
                     options: {
@@ -159,7 +163,7 @@ export default function ProductsList({ products }) {
                             x: { display: false }
                         },
                         elements: {
-                            point: { radius: 0 }
+                            point: { radius: 1.5 }
                         },
                         maintainAspectRatio: false
                     },
@@ -170,7 +174,8 @@ export default function ProductsList({ products }) {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',
-                                day: 'numeric'
+                                day: 'numeric',
+                                timeZone: 'GMT'
                             };
 
                             return fechaObj.toLocaleDateString('es-MX', opciones);
@@ -179,7 +184,9 @@ export default function ProductsList({ products }) {
                             {
                                 label: 'Precio',
                                 data: io_history.map((io_history_item) => io_history_item.price),
-                                borderColor: '#3b82f6',
+                                borderColor: io_history.map(
+                                    (io_history_item) => io_history_item.id === null ? "rgb(255, 99, 132)" : "#3b82f6"
+                                ),
                                 borderWidth: 2,
                                 tension: 0.1,
                             }
