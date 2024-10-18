@@ -21,3 +21,5 @@ def index():
 @main.route("/products", methods=["GET"])
 def products():
     return product_controller.get_products()
+
+# TODO: Add io history endpoint
