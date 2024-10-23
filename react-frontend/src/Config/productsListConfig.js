@@ -19,4 +19,8 @@ export const columns = [
         name: 'Últimos 21 días',
         uid: 'last_21d',
     },
+    {
+        name: 'Acciones',
+        uid: 'actions',
+    },
 ];

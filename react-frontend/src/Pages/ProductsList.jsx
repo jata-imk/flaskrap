@@ -10,6 +10,7 @@ import {
 } from "@nextui-org/table";
 
 import { MdInfoOutline } from "react-icons/md";
+import { Link, router } from "@inertiajs/react";
 import { Tooltip as TooltipNext } from "@nextui-org/tooltip";
 import { Button } from "@nextui-org/button";
 
@@ -42,42 +43,26 @@ ChartJS.register(
 );
 
 
-export default function ProductsList({ products }) {
+export default function ProductsList({ products, pagination }) {
     const [filterValue, setFilterValue] = useState("");
     const [dateFilter, setDateFilter] = useState(null);
-    const [page, setPage] = useState(1);
-    const [pages, setPages] = useState(0);
-    // const [products, setProducts] = useState(products);
-    const rowsPerPage = 5;
 
-    const hasSearchFilter = Boolean(filterValue);
-
-    const filteredProducts = useMemo(() => {
-        let filteredProducts = [...products];
-
-        if (hasSearchFilter) {
-            filteredProducts = filteredProducts.filter((product) =>
-                product.name.toLowerCase().includes(filterValue.toLowerCase()),
-            );
-        }
-
-        // if (dateFilter) {
-        //     filteredProducts = filteredProducts.filter((user) =>
-        //         user.created_at.toISOString().split("T")[0] === dateFilter.toISOString().split("T")[0]
-        //     );
-        // }
-
-        setPages(Math.ceil(filteredProducts.length / rowsPerPage));
-
-        return filteredProducts;
-    }, [products, filterValue]);
-
-    const paginatedProducts = useMemo(() => {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-
-        return filteredProducts.slice(start, end);
-    }, [page, filteredProducts]);
+    const handlePageChange = (newPage, name = null) => {
+        const finalName = name !== null ? name : filterValue;
+        router.get(
+            '/products', 
+            {
+                page: newPage,
+                page_size: 5,
+                name: finalName,
+            },
+            { 
+                preserveState: true,
+                preserveScroll: true,
+                only: ['products', 'pagination'],
+            }
+        );
+    };
 
     const renderCell = useCallback((product, columnKey) => {
         const cellValue = product[columnKey];
@@ -204,6 +189,14 @@ export default function ProductsList({ products }) {
                         />
                     </div>
                 );
+            case "actions":
+                return (
+                    <div className="text-left">
+                        <Link href={`/products/${product.id}`} as="button" type="button" className="bg-transparent">
+                            Ver detalles
+                        </Link>
+                    </div>
+                );
             default:
                 return cellValue;
         }
@@ -215,19 +208,13 @@ export default function ProductsList({ products }) {
         }
     }, []);
 
-    const onSearchChange = useCallback((value) => {
-        if (value) {
-            setFilterValue(value);
-            setPage(1);
-        } else {
-            setFilterValue("");
-        }
-    }, []);
+    const onSearchChange = (value) => {
+        setFilterValue(value)
 
-    const onClear = useCallback(() => {
-        setFilterValue("")
-        setPage(1)
-    }, [])
+        setTimeout(() => {
+            handlePageChange(1, value)
+        }, 500)
+    }
 
     return (
         <Layout currentPage={'products'}>
@@ -247,16 +234,21 @@ export default function ProductsList({ products }) {
                     className="w-full sm:max-w-[44%]"
                     placeholder="Buscar por nombre..."
                     value={filterValue}
-                    onClear={() => onClear()}
-                    onValueChange={onSearchChange}
+                    onClear={() => onSearchChange("")}
+                    onValueChange={(value) => onSearchChange(value)}
                 />
             </div>
 
-            <Table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
+            <Table className="min-w-full"
                 aria-label="Listado de productos que han sido agregado al sistema"
                 selectionMode="multiple"
+                classNames={{
+                    wrapper: "w-full",
+                    table: "min-w-[56.25rem] lg:min-w-full",
+                }}
+                topContentPlacement="outside"
                 topContent={
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-neutral-700">
+                    <div className="px-6 py-4">
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-neutral-200">
                             Vistazo general de productos
                         </h2>
@@ -265,16 +257,18 @@ export default function ProductsList({ products }) {
                         </p>
                     </div>
                 }
+                bottomContentPlacement="outside"
                 bottomContent={
+                    pagination.total_pages > 1 &&
                     <div className="flex w-full justify-center">
                         <Pagination
                             isCompact
                             showControls
                             showShadow
                             color="secondary"
-                            page={page}
-                            total={pages}
-                            onChange={(page) => setPage(page)}
+                            page={pagination.page}
+                            total={pagination.total_pages}
+                            onChange={(page) => handlePageChange(page)}
                         />
                     </div>
                 }
@@ -286,7 +280,8 @@ export default function ProductsList({ products }) {
                         </TableColumn>
                     )}
                 </TableHeader>
-                <TableBody items={paginatedProducts}>
+
+                <TableBody items={products} >
                     {(item) => (
                         <TableRow className="bg-white hover:bg-gray-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 " key={item.id}>
                             {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
