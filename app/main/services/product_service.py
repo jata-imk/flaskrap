@@ -75,3 +75,7 @@ class ProductService:
     @staticmethod
     def get_all_products(filter=None):
         return ProductRepository.get_all(filter)
+
+    @staticmethod
+    def get_all_products_count(filter=None):
+        return ProductRepository.get_count(filter)

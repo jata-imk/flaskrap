@@ -23,3 +23,6 @@ def products():
     return product_controller.get_products()
 
 # TODO: Add io history endpoint
+@main.route("/products/<product_id>", methods=["GET"])
+def product(product_id):
+    return product_controller.get_product(product_id)
