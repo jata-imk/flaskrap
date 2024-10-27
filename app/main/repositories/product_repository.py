@@ -1,7 +1,5 @@
 import copy
-from turtle import st
 
-from click import group
 from app import db
 from app.main.dtos.product.product_filter_dto import ProductFilter
 from app.main.models.Product import Product
@@ -11,7 +9,7 @@ from app.main.models.ProductIOHistory import ProductIOHistory
 from app.main.repositories.product_io_history_repository import (
     ProductIOHistoryRepository,
 )
-from sqlalchemy import Subquery, select, func
+from sqlalchemy import select, func
 from sqlalchemy.orm import contains_eager
 
 
