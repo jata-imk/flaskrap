@@ -11,9 +11,22 @@ class ProductIOHistoryRepository:
     def get_io_history_conditions(filters: ProductIOHistoryFilter):
         conditions = and_(
             func.date(ProductIOHistory.transaction_date) >= filters.start_date if filters.start_date else True,
-            func.date(ProductIOHistory.transaction_date) <= filters.end_date if filters.end_date else True
+            func.date(ProductIOHistory.transaction_date) <= filters.end_date if filters.end_date else True,
+            ProductIOHistory.inventory_id == filters.inventory_id if filters.inventory_id else True
         )
         return conditions
+
+    @staticmethod
+    def get_all(filters: ProductIOHistoryFilter):
+        conditions = ProductIOHistoryRepository.get_io_history_conditions(filters)
+        return (
+            db.session.query(ProductIOHistory)
+            .filter(conditions)
+            .group_by(ProductIOHistory.inventory_id, ProductIOHistory.transaction_date)
+            .order_by(ProductIOHistory.transaction_date.desc())
+            .all()
+        )
+
 
     @staticmethod
     def create(history):

@@ -12,6 +12,7 @@ pymysql = "*"
 python-dotenv = "*"
 flask-inertia = "*"
 python-dateutil = "*"
+google-generativeai = "*"
 
 [dev-packages]
 
