@@ -34,6 +34,9 @@ class Product(db.Model):
     inventories = db.relationship(
         "ProductInventory", back_populates="product", lazy=True
     )
+    prompt_history = db.relationship(
+        "PromptHistory", back_populates="product", lazy=True
+    )
 
     def __repr__(self):
         return f"<Product {self.name}>"

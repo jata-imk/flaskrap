@@ -26,3 +26,9 @@ def products():
 @main.route("/products/<product_id>", methods=["GET"])
 def product(product_id):
     return product_controller.get_product(product_id)
+
+
+@main.route("/products/<product_id>/ai-price-analysis", methods=["GET"])
+@main.route("/products/<product_id>/inventories/<inventory_id>/ai-price-analysis", methods=["GET"])
+def ai_price_analysis(product_id, inventory_id=None):
+    return product_controller.get_ai_price_analysis(product_id, inventory_id)
