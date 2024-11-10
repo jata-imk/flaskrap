@@ -31,27 +31,33 @@ class SuperColchonesWebScrapper:
     endpointCatalogSearchResults = "catalogsearch/result/index/"
     
     def __init__(self, debug = False):
-        options = None
-        
+        options = Options()
+
         if (debug is False):
             print('Running in headless mode...\n\n')
             print(f"Enviroment: {os.getenv('APP_ENV')}")
 
             if (os.getenv("APP_ENV") == 'production'):
-                options = webdriver.FirefoxOptions()
-
-                options.add_argument('--headless')
-                options.add_argument('--no-sandbox')
-                options.add_argument('--disable-dev-shm-usage')
-
-                driver = webdriver.Firefox(options=options)
-            else:
-                options = Options()
-
+                # Modo Headless y limitacion de resolucion
                 options.add_argument("--headless")
-                options.add_experimental_option("excludeSwitches", ["enable-logging"])
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--window-size=1280x1024")  # Resolución reducida
 
-                driver = webdriver.Chrome(options=options)
+                # Limitar el Caché y Desactivar Componentes Innecesarios
+                options.add_argument("--disable-gpu")  # Para entornos sin GPU, reduce el uso de memoria.
+                options.add_argument("--disable-software-rasterizer")
+                options.add_argument("--disable-extensions")  # Desactiva extensiones.
+                options.add_argument("--disable-blink-features=AutomationControlled")
+                
+                # Deshabilitar imagenes
+                prefs = {"profile.managed_default_content_settings.images": 2}
+                options.add_experimental_option("prefs", prefs)
+
+        # Desactivar logs
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
+        driver = webdriver.Chrome(options=options)
         
         driver.get(self.urlBase)
         driver.implicitly_wait(10)
