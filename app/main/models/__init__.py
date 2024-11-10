@@ -6,5 +6,7 @@ from app.main.models import (
     Vendor,
     ProductIOHistory,
     ProductImage,
+    BrandImage,
+    CategoryImage,
     Image,
 )
