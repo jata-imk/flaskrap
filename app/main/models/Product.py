@@ -31,6 +31,7 @@ class Product(db.Model):
 
     category = db.relationship("Category", backref=db.backref("products", lazy=True))
     brand = db.relationship("Brand", backref=db.backref("products", lazy=True))
+    images = db.relationship("Image", secondary="product_image", backref="products")
     inventories = db.relationship(
         "ProductInventory", back_populates="product", lazy=True
     )

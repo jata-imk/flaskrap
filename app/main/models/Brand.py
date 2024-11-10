@@ -17,5 +17,7 @@ class Brand(db.Model):
         onupdate=datetime.now,
     )
 
+    images = db.relationship("Image", secondary="brand_image", backref="brands")
+
     def __repr__(self):
         return f"<Brand {self.name}>"

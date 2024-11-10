@@ -1,11 +1,11 @@
 from app import db
 
 
-class ProductImage(db.Model):
-    __tablename__ = "product_image"
+class CategoryImage(db.Model):
+    __tablename__ = "category_image"
 
-    product_id = db.Column(
-        db.Integer, db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True
+    category_id = db.Column(
+        db.Integer, db.ForeignKey("category.id", ondelete="CASCADE"), primary_key=True
     )
     image_id = db.Column(
         db.Integer, db.ForeignKey("image.id", ondelete="CASCADE"), primary_key=True

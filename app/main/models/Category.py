@@ -16,6 +16,9 @@ class Category(db.Model):
     parent_category = db.relationship(
         "Category", remote_side=[id], backref="subcategories"
     )
+    images = db.relationship(
+        "Image", secondary="category_image", backref="categories"
+    )
 
     def __repr__(self):
         return f"<Category {self.display_text}>"
