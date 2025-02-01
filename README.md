@@ -38,6 +38,15 @@ Si todo salió bien ahora deberíamos tener dos servidores, uno en el puerto 500
 
 Para poder ejecutar este proyecto necesitas solicitar las variables de entorno con los demás integrantes del proyecto, ya que por razones de seguridad no se suben al repositorio
 
+## Link  simbolico para la carpeta `/storage` 
+Si se planea utilizar el almacenamiento utilizando la carpeta `storage` hay que crear un link simbolico, nos posicionamos en la careta raiz y aplicamos el siguiente comando:
+
+    mklink /D "{project_path}\app\static\storage" "{project_path}\storage\app\public"
+
+En linux:
+
+    ln -s {project_path}/storage/app/public/images {project_path}/app/static/storage
+
 ## Principales tecnologías
 
  - Python v3.10.6

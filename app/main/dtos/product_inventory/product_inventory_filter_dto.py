@@ -1,8 +1,5 @@
-from ctypes import Array
-
-
 class ProductInventoryFilter:
-    def __init__(self, products_id:Array=None, vendor_id=None, price=None, page:int=None, page_size:int=None, include:dict=None):
+    def __init__(self, products_id:list=None, vendor_id=None, price=None, page:int=None, page_size:int=None, include:dict=None):
         self.products_id = products_id
         self.vendor_id = vendor_id
         self.price = price

@@ -34,21 +34,26 @@ class SuperColchonesWebScrapper:
         options = Options()
 
         if (debug is False):
-            print('Running in headless mode...\n\n')
             print(f"Enviroment: {os.getenv('APP_ENV')}")
 
             if (os.getenv("APP_ENV") == 'production'):
+                print('Running in headless mode...\n\n')
+                
                 # Modo Headless y limitacion de resolucion
                 options.add_argument("--headless")
                 options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--no-sandbox")
                 options.add_argument("--window-size=1280x1024")  # Resolución reducida
-
+                
                 # Limitar el Caché y Desactivar Componentes Innecesarios
                 options.add_argument("--disable-gpu")  # Para entornos sin GPU, reduce el uso de memoria.
                 options.add_argument("--disable-software-rasterizer")
                 options.add_argument("--disable-extensions")  # Desactiva extensiones.
                 options.add_argument("--disable-blink-features=AutomationControlled")
+                
+                options.add_argument("--disable-features=UseDbus")
+                options.add_argument("--disable-features=UsePasswordStore")
+                options.add_argument("--disable-vulkan") # Deshabilitar Vulkan (No necesario para headless)
                 
                 # Deshabilitar imagenes
                 prefs = {"profile.managed_default_content_settings.images": 2}
@@ -176,7 +181,7 @@ for filterOption in filterOptions:
     title = filterOption.find_element(by=By.CSS_SELECTOR, value='* > .filter-options-title')
     itemsList = filterOption.find_element(by=By.CSS_SELECTOR, value='* > .filter-options-content ol.items')
     items = itemsList.find_elements(by=By.CSS_SELECTOR, value='* > .item')
-    
+
     for item in items:
         # select the link inside
         itemAnchor = item.find_element(by=By.CSS_SELECTOR, value='* > a')

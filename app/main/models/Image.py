@@ -11,7 +11,7 @@ class Image(db.Model):
         db.Enum("archivo", "url", name="tipo"), nullable=False, default="archivo"
     )
     name = db.Column(db.String(255), nullable=False)
-    caption = db.Column(db.String(255), nullable=False)
+    caption = db.Column(db.String(255), nullable=False, default="", server_default="")
     created_at = db.Column(
         db.DateTime, default=datetime.now, server_default="CURRENT_TIMESTAMP()"
     )

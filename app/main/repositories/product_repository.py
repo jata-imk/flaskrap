@@ -1,10 +1,11 @@
 import copy
 
 from app import db
-from app.main.dtos.product.product_filter_dto import ProductFilter
 from app.main.models.Product import Product
+from app.main.models.ProductImage import ProductImage
 from app.main.models.ProductInventory import ProductInventory
 from app.main.models.ProductIOHistory import ProductIOHistory
+from app.main.dtos.product.product_filter_dto import ProductFilter
 
 from app.main.repositories.product_io_history_repository import (
     ProductIOHistoryRepository,
@@ -43,8 +44,15 @@ class ProductRepository:
             stmt = stmt.join(subquery, Product.id == subquery.c.id)
 
         if filter.include:
+            if "images" in filter.include:
+                stmt = stmt.join(Product.images).options(
+                    contains_eager(Product.images)
+                )
+
+                stmt = stmt.filter(ProductImage.is_primary == True)
+                
             if "inventories" in filter.include:
-                stmt = stmt.join(Product.inventories).options(
+                stmt = stmt.join(Product.inventories, isouter=True).options(
                     contains_eager(Product.inventories)
                 )
 
