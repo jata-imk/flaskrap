@@ -45,6 +45,9 @@ class Product(db.Model):
     def as_dict(self):
         product_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+        if "images" in self.__dict__:
+            product_dict["images"] = [image.as_dict() for image in self.images]
+
         if "inventories" in self.__dict__:
             product_dict["inventories"] = [
                 inventory.as_dict() for inventory in self.inventories

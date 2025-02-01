@@ -7,7 +7,7 @@
     <title>{% block title %}Flask - Aleliz{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
-    {% if config['ENV'] != 'development' %}
+    {% if config['APP_ENV'] != 'development' %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     {% endif %}
 
@@ -32,7 +32,7 @@
 <body class="dark:bg-neutral-900 mb-[56px] sm:mb-[116px]">
     <div id="app" data-page='{{ page | tojson }}'></div>
 
-    {% if config['ENV'] == 'development' %}
+    {% if config['APP_ENV'] == 'development' %}
     <script type="module">
         import RefreshRuntime from 'http://localhost:5173/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)

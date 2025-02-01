@@ -10,4 +10,4 @@ class ProductImage(db.Model):
     image_id = db.Column(
         db.Integer, db.ForeignKey("image.id", ondelete="CASCADE"), primary_key=True
     )
-    is_primary = db.Column(db.Boolean, default=False, nullable=False)
+    is_primary = db.Column(db.Boolean, nullable=False,default=False, server_default="0")

@@ -1,11 +1,14 @@
 import json
 import math
+import re
 from dateutil import parser
 from datetime import date, timedelta
 
 from flask import request, jsonify
 from flask_inertia import render_inertia
 
+from app.main.dtos.images_filter.image_filter import ImageFilter
+from app.main.dtos.images_filter.pivot_image_filter import PivotImageFilter
 from app.main.repositories.product_inventory_repository import (
     ProductInventoryRepository,
 )
@@ -34,7 +37,7 @@ def get_products():
         category_id = request.args.get("category_id")
         page = request.args.get("page", type=int, default=1)
         page_size = request.args.get("page_size", type=int, default=10)
-        include = parse_include(request.args.get("include", "inventories.io_history"))
+        include = parse_include(request.args.get("include", "images,inventories.io_history"))
 
         include_filters = {}
 
@@ -53,6 +56,11 @@ def get_products():
                             )
                         }
                     )
+
+            if "images" in include:
+                include_filters["images"] = PivotImageFilter(
+                    is_primary=True
+                )
 
         product_filter = ProductFilter(
             id=None,
@@ -144,35 +152,64 @@ def get_or_create_dates_from_dict(dict: dict = None):
 
 
 def parse_include(include_str):
-    include = {}
-    if include_str:
-        relationships = include_str.split(".")
-        for relation in relationships:
-            fields = None
-            filters = None
-            rel_name = relation
+    """
+    Parsea el parámetro 'include' para construir un diccionario con relaciones, campos y filtros.
+    
+    Ejemplo de entrada:
+    "images,inventories.io_history(id,transaction_date,price):{start_date=2024-10-01,end_date=2024-10-21}"
+    
+    Ejemplo de salida:
+    {
+        "images": {
+            "fields": null,
+            "filters": null
+        },
+        "inventories": {
+            "fields": null,
+            "filters": null
+        },
+        "io_history": {
+            "fields": ["id", "transaction_date", "price"],
+            "filters": {
+                "start_date": "2024-10-01",
+                "end_date": "2024-10-21"
+            }
+        }
+    }
+    """
+    if not include_str:
+        return {}
 
-            if "(" in relation and ")" in relation:
-                fields = relation.split("(")[-1].split(")")[0].split(",")
+    # Expresión regular para relaciones con posibles campos y filtros
+    pattern = r'([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)(?:\(([^)]*)\))?(?::\{([^}]*)\})?'
 
-            if ":" in relation:
-                filters_string = relation.split(":")[-1]
+    matches = re.findall(pattern, include_str)
+    result = {}
 
-                filters = (
-                    [f.split("=") for f in filters_string.lstrip(":").split(",")]
-                    if filters_string
-                    else filters
-                )
-                filters = dict(filters) if (len(filters)) else filters
+    for relation, fields, filters in matches:
+        # Procesar campos (si existen)
+        fields_list = [field.strip() for field in fields.split(",")] if fields else None
+        
+        # Procesar filtros (si existen)
+        filters_dict = {}
+        if filters:
+            for filter_item in filters.split(","):
+                key, value = filter_item.split("=")
+                filters_dict[key.strip()] = value.strip()
 
-            if fields:
-                rel_name = relation.split("(")[0]
-            elif filters:
-                rel_name = relation.split(":")[0]
+        # Separar relaciones anidadas
+        relation_parts = relation.split(".")
+        if len(relation_parts) > 1:
+            # Relación anidada (última parte es la relación hija)
+            parent, child = relation_parts
+            if parent not in result:
+                result[parent] = {"fields": None, "filters": None}
+            result[child] = {"fields": fields_list, "filters": filters_dict}
+        else:
+            # Relación principal
+            result[relation] = {"fields": fields_list, "filters": filters_dict}
 
-            include[rel_name] = {"fields": fields, "filters": filters}
-
-    return include
+    return result
 
 
 def get_ai_price_analysis(product_id, inventory_id=None):
