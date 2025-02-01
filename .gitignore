@@ -1,5 +1,6 @@
 .env
 storage/
+app/static/storage/
 
 # frontend project
 react-frontend/dist
