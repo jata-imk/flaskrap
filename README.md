@@ -45,7 +45,7 @@ Si se planea utilizar el almacenamiento utilizando la carpeta `storage` hay que 
 
 En linux:
 
-    ln -s {project_path}/storage/app/public/images {project_path}/app/static/storage
+    ln -s {project_path}/storage/app/public {project_path}/app/static/storage
 
 ## Principales tecnologías
 

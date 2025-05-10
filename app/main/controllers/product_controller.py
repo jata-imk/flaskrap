@@ -236,6 +236,12 @@ def get_ai_price_analysis(product_id, inventory_id=None):
         )
     )
 
+    if (len(historial_precios) < 30):
+        if request.accept_mimetypes.best == "application/json":
+            return jsonify({"message": "Not enough data to analyze"}), 400
+        else:
+            return
+
     historial_precios = historial_precios[::-1]
     historial_precios_formatted = [
         {
